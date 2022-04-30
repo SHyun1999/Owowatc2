@@ -31,6 +31,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		class UCameraComponent* FollowCamera;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+		class UWidgetComponent* CharOverHeadWidget;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
