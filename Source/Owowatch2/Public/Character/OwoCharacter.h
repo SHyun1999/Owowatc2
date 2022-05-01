@@ -34,6 +34,12 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 		class UWidgetComponent* CharOverHeadWidget;
 
+	UPROPERTY(ReplicateduSING = OnRep_OverlappingWeapon)
+	class AWeapon* OverlappingWeapon;
+
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -41,5 +47,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	//////////////////	
+	//SERVER
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	void SetOverlappingWeapon(class AWeapon* Weapon);
 };

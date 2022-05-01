@@ -6,6 +6,8 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "Owowatch2/Public/Weapon/Weapon.h"
 
 // Sets default values
 AOwoCharacter::AOwoCharacter()
@@ -37,6 +39,13 @@ void AOwoCharacter::BeginPlay()
 	
 }
 
+
+void AOwoCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
 void AOwoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	
@@ -49,6 +58,7 @@ void AOwoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAxis("Turn", this, &AOwoCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &AOwoCharacter::LookUp);
 }
+
 
 void AOwoCharacter::MoveForward(float Value)
 {
@@ -81,9 +91,43 @@ void AOwoCharacter::LookUp(float Value)
 	AddControllerPitchInput(Value);
 }
 
-void AOwoCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 
+//////////////////////
+//SERVER
+void AOwoCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME_CONDITION(AOwoCharacter, OverlappingWeapon, COND_OwnerOnly);
 }
 
+void AOwoCharacter::SetOverlappingWeapon(AWeapon* Weapon)
+{
+
+	if (OverlappingWeapon)
+	{
+		OverlappingWeapon->ShowPickUpWidget(false);
+	}
+
+	OverlappingWeapon = Weapon;
+
+	if (IsLocallyControlled())
+	{
+		if (OverlappingWeapon)
+		{
+			OverlappingWeapon->ShowPickUpWidget(true);
+		}
+	}
+}
+
+void AOwoCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
+{
+	if (OverlappingWeapon)
+	{
+		OverlappingWeapon->ShowPickUpWidget(true);
+	}
+
+	if (LastWeapon)
+	{
+		LastWeapon->ShowPickUpWidget(false);
+	}
+}
