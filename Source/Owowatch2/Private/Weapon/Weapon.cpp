@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Owowatch2/Public/Character/OwoCharacter.h"
+#include "Net/UnrealNetwork.h"
 // Sets default values
 AWeapon::AWeapon()
 {
@@ -74,6 +75,35 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	{
 		OwoChar->SetOverlappingWeapon(nullptr);
 	}
+}
+
+void AWeapon::OnRep_WeaponState()
+{
+	switch (WeaponState) {
+	case EWeaponState::EWS_Equipped:
+		ShowPickUpWidget(false);
+		break;
+	}
+}
+
+void AWeapon::SetWeaponState(EWeaponState State)
+{
+	WeaponState = State;
+	switch (WeaponState)
+	{
+
+	case EWeaponState::EWS_Equipped:
+		ShowPickUpWidget(false);
+		GetAreaSphere()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	}
+}
+
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AWeapon, WeaponState);
 }
 
 

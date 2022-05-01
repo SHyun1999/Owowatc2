@@ -8,6 +8,7 @@
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Owowatch2/Public/Weapon/Weapon.h"
+#include "Owowatch2/Public/OwoComponents/CombatComponent.h"
 
 // Sets default values
 AOwoCharacter::AOwoCharacter()
@@ -30,6 +31,20 @@ AOwoCharacter::AOwoCharacter()
 	CharOverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	CharOverHeadWidget->SetupAttachment(RootComponent);
 
+	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
+	Combat->SetIsReplicated(true);
+
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+}
+
+void AOwoCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	if (Combat)
+	{
+		Combat->Char = this;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -52,6 +67,9 @@ void AOwoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &AOwoCharacter::EquipButtonPressed);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AOwoCharacter::CrouchButtonPressed);
+
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AOwoCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AOwoCharacter::MoveRight);
@@ -91,6 +109,33 @@ void AOwoCharacter::LookUp(float Value)
 	AddControllerPitchInput(Value);
 }
 
+void AOwoCharacter::EquipButtonPressed()
+{
+	if (Combat)
+	{
+		if (HasAuthority())
+		{
+			Combat->EquipWeapon(OverlappingWeapon);
+		}
+		else
+		{
+			ServerEquipButtonPressed();
+		}
+	}
+}
+
+void AOwoCharacter::CrouchButtonPressed()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
+	}
+}
+
 
 //////////////////////
 //SERVER
@@ -119,6 +164,11 @@ void AOwoCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 	}
 }
 
+bool AOwoCharacter::IsWeaponEquipped()
+{
+	return (Combat && Combat->EquippedWeapon);
+}
+
 void AOwoCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if (OverlappingWeapon)
@@ -129,5 +179,13 @@ void AOwoCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	if (LastWeapon)
 	{
 		LastWeapon->ShowPickUpWidget(false);
+	}
+}
+
+void AOwoCharacter::ServerEquipButtonPressed_Implementation()
+{
+	if (Combat)
+	{
+		Combat->EquipWeapon(OverlappingWeapon);
 	}
 }

@@ -28,4 +28,7 @@ void UOwoAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	bIsInAir = OwoCharacter->GetCharacterMovement()->IsFalling();
 	bIsAccelerating = OwoCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
+
+	bWeaponEquipped = OwoCharacter->IsWeaponEquipped();
+	bIsCrouched = OwoCharacter->bIsCrouched;
 }

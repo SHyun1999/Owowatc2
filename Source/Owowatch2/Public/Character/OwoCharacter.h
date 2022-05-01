@@ -15,6 +15,8 @@ public:
 	// Sets default values for this character's properties
 	AOwoCharacter();
 
+	virtual void PostInitializeComponents() override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -23,6 +25,8 @@ protected:
 	void MoveRight(float Value);
 	void Turn(float Value);
 	void LookUp(float Value);
+	void EquipButtonPressed();
+	void CrouchButtonPressed();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -33,12 +37,18 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 		class UWidgetComponent* CharOverHeadWidget;
+	
+	UPROPERTY(VisibleAnywhere)
+	class UCombatComponent* Combat;
 
 	UPROPERTY(ReplicateduSING = OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
 
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+
+	UFUNCTION(Server, Reliable)// makes it so the server HAS to execute function
+	void ServerEquipButtonPressed();
 
 public:	
 	// Called every frame
@@ -52,4 +62,6 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void SetOverlappingWeapon(class AWeapon* Weapon);
+
+	bool IsWeaponEquipped();
 };
