@@ -69,6 +69,8 @@ void AOwoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &AOwoCharacter::EquipButtonPressed);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AOwoCharacter::CrouchButtonPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AOwoCharacter::AimButtonPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AOwoCharacter::AimButtonReleased);
 
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AOwoCharacter::MoveForward);
@@ -136,6 +138,23 @@ void AOwoCharacter::CrouchButtonPressed()
 	}
 }
 
+void AOwoCharacter::AimButtonPressed()
+{
+
+	if (Combat)
+	{
+		Combat->SetAiming(true);
+	}
+}
+
+void AOwoCharacter::AimButtonReleased()
+{
+	if (Combat)
+	{
+		Combat->SetAiming(false);
+	}
+}
+
 
 //////////////////////
 //SERVER
@@ -167,6 +186,11 @@ void AOwoCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 bool AOwoCharacter::IsWeaponEquipped()
 {
 	return (Combat && Combat->EquippedWeapon);
+}
+
+bool AOwoCharacter::IsAiming()
+{
+	return (Combat && Combat->bAiming);
 }
 
 void AOwoCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)

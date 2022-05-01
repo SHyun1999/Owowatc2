@@ -4,6 +4,7 @@
 #include "OwoAnimInstance.h"
 #include "Character/OwoCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void UOwoAnimInstance::NativeInitializeAnimation()
 {
@@ -31,4 +32,12 @@ void UOwoAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	bWeaponEquipped = OwoCharacter->IsWeaponEquipped();
 	bIsCrouched = OwoCharacter->bIsCrouched;
+
+	bAiming = OwoCharacter->IsAiming();
+
+
+	//STRAFING
+	FRotator AimRotation = OwoCharacter->GetBaseAimRotation();
+	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(OwoCharacter->GetVelocity());
+	YawOffset = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation,AimRotation).Yaw;
 }

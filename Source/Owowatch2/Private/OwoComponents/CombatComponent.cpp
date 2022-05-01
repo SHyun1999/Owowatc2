@@ -7,6 +7,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 UCombatComponent::UCombatComponent()
@@ -14,14 +15,34 @@ UCombatComponent::UCombatComponent()
 	
 	PrimaryComponentTick.bCanEverTick = true;
 
-
 }
 
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 	
+}
+
+void UCombatComponent::SetAiming(bool bIsAiming)
+{
+	bAiming = bIsAiming; // replicate right away to display the pose immediately
+
+	ServerSetAiming(bIsAiming); // if on server, it'll run there. if on client, it will be executed on the client.
+}
+
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+
+	if (EquippedWeapon && Char)
+	{
+		Char->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Char->bUseControllerRotationYaw = true;
+	}
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
+{
+	bAiming = bIsAiming;
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -29,6 +50,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, bAiming);
 }
 
 
@@ -51,5 +73,7 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 		HandSocket->AttachActor(EquippedWeapon, Char->GetMesh());
 	}
 	EquippedWeapon->SetOwner(Char);
+	Char->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Char->bUseControllerRotationYaw = true;
 }
 
